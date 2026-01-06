@@ -22,18 +22,16 @@
                         <label>Tgl Terima (Kejaksaan)</label>
                         <input type="date" name="spdp_tgl_terima" required>
                     </div>
-                    <div class="form-group">
-                        <label>Ket. (Kejaksaan)</label>
-                        <input type="text" name="spdp_ket_terima" placeholder="No. SPDP...">
-                    </div>
+                    <!-- Empty div to maintain grid structure or just let next item flow -->
+                    <div></div>
                     
                     <!-- Kepolisian -->
                     <div class="form-group">
-                        <label>Tgl SPDP (Kepolisian)</label>
+                        <label>Tanggal Pemberitahuan Penyidikan</label>
                         <input type="date" name="spdp_tgl_polisi">
                     </div>
                     <div class="form-group">
-                        <label>Ket. (Kepolisian)</label>
+                        <label>Nomor</label>
                         <input type="text" name="spdp_ket_polisi" placeholder="No. Polisi...">
                     </div>
                 </div>
@@ -92,7 +90,7 @@
                         </div>
                         
                         <div style="border-top: 1px dashed #ddd; padding-top: 6px;">
-                            <span style="display:block; font-weight:bold; color:var(--secondary-color);">Kepolisian:</span>
+                            <span style="display:block; font-weight:bold; color:var(--secondary-color);">Tanggal Pemberitahuan Penyidikan:</span>
                              {% if case.spdp_tgl_polisi %}
                                 {{ case.spdp_tgl_polisi }}
                             {% else %}
@@ -100,7 +98,7 @@
                             {% endif %}
 
                             {% if case.spdp_ket_polisi %}
-                            <br><small style="color:#666;">Ket: {{ case.spdp_ket_polisi }}</small>
+                            <br><small style="color:#666;">Nomor: {{ case.spdp_ket_polisi }}</small>
                             {% endif %}
                         </div>
                     </td>
