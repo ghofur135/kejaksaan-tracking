@@ -101,7 +101,10 @@ label {
     text-transform: uppercase;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], 
+input[type="password"],
+input[type="date"],
+input[type="datetime-local"] {
     width: 100%;
     padding: 0.875rem 1rem;
     border: 1px solid #e2e8f0;
@@ -110,8 +113,25 @@ input[type="text"], input[type="password"] {
     background-color: #f8fafc;
     transition: all 0.2s ease;
     color: #334155;
-    box-sizing: border-box; /* Crucial for width */
+    box-sizing: border-box;
     font-family: inherit;
+    appearance: none; /* Remove default browser styling */
+}
+
+/* Custom Calendar Icon for Date Inputs */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background-color: transparent;
+    padding: 5px;
+    cursor: pointer;
+    filter: invert(0.5) sepia(1) saturate(5) hue-rotate(175deg); /* Tint to accent color */
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    background-color: #e2e8f0;
 }
 
 input:focus {
@@ -163,39 +183,41 @@ input:focus {
 table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Reduced font size */
     background: white;
+    table-layout: auto; /* Allow auto sizing */
 }
 
 th {
     background: #f8fafc;
     color: #475569;
-    padding: 1.25rem 1rem;
+    padding: 0.75rem 0.5rem; /* Reduced padding */
     text-align: left;
-    white-space: nowrap;
+    white-space: normal; /* Allow wrapping */
     position: sticky;
     top: 0;
     z-index: 10;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.05em;
     border-bottom: 2px solid #e2e8f0;
+    vertical-align: bottom;
 }
 
 td {
-    padding: 0.8rem 1rem;
+    padding: 0.5rem 0.5rem; /* Compact padding */
     border-bottom: 1px solid #ebebeb;
-    vertical-align: middle;
-    min-width: 120px; /* Prevent too narrow columns */
-    line-height: 1.5;
+    vertical-align: top; /* Better for multiline text */
+    min-width: 80px; /* Reduced minimum width */
+    line-height: 1.4;
 }
 
 .table-input {
     width: 100%;
     border: 1px solid transparent;
     background: transparent;
-    padding: 4px;
+    padding: 2px 4px; /* Compact input padding */
     border-radius: 4px;
     font-family: inherit;
     font-size: inherit;

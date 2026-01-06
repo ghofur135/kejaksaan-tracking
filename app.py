@@ -133,12 +133,22 @@ def dashboard():
 def add_case():
     nama = request.form.get('nama_tersangka')
     pasal = request.form.get('pasal')
-    spdp = request.form.get('spdp')
+    
+    # New SPDP Inputs
+    tgl_terima = request.form.get('spdp_tgl_terima')
+    ket_terima = request.form.get('spdp_ket_terima')
+    tgl_polisi = request.form.get('spdp_tgl_polisi')
+    ket_polisi = request.form.get('spdp_ket_polisi')
     
     new_case = Case(
         nama_tersangka=nama,
         pasal=pasal,
-        spdp=spdp
+        spdp_tgl_terima=tgl_terima,
+        spdp_ket_terima=ket_terima,
+        spdp_tgl_polisi=tgl_polisi,
+        spdp_ket_polisi=ket_polisi,
+        # Construct legacy string for backward compat display if needed, or leave empty
+        spdp=f"{ket_terima} ({tgl_terima})" if ket_terima else tgl_terima
     )
     db.session.add(new_case)
     db.session.commit()
@@ -161,15 +171,16 @@ def update_cell():
         return jsonify({'success': False, 'error': 'Case not found'}), 404
         
     # Security: Ensure field is allowed
-    allowed_fields = ['berkas_tahap_1', 'p18_p19', 'p21', 'tahap_2', 'limpah_pn', 'keterangan']
+    # Allowed: Existing stages + New SPDP fields
+    allowed_fields = [
+        'berkas_tahap_1', 'p18_p19', 'p21', 'tahap_2', 'limpah_pn', 'keterangan',
+        'spdp_tgl_terima', 'spdp_tgl_polisi' # Allow editing dates via modal
+    ]
     if field not in allowed_fields:
         return jsonify({'success': False, 'error': 'Field not editable'}), 403
         
     setattr(case, field, value)
     db.session.commit()
-    
-    # Check if new value triggers overdue (for immediate UI update feedback if we wanted, 
-    # but for now just success is enough, refresh handles color)
     return jsonify({'success': True})
 
 def create_admin():
@@ -181,11 +192,32 @@ def create_admin():
         db.session.commit()
         print("Admin user created (admin/12345)")
 
+def migrate_db():
+    """Check for missing columns and add them (SQLite Migration)"""
+    inspector = db.inspect(db.engine)
+    columns = [col['name'] for col in inspector.get_columns('case')]
+    
+    new_cols = {
+        'spdp_tgl_terima': 'VARCHAR(50)',
+        'spdp_ket_terima': 'VARCHAR(200)',
+        'spdp_tgl_polisi': 'VARCHAR(50)',
+        'spdp_ket_polisi': 'VARCHAR(200)'
+    }
+    
+    with db.engine.connect() as conn:
+        for col_name, col_type in new_cols.items():
+            if col_name not in columns:
+                print(f"Migrating: Adding {col_name} to case table...")
+                # Use double quotes for table name "case" because it is a reserved keyword in SQL
+                conn.execute(db.text(f'ALTER TABLE "case" ADD COLUMN {col_name} {col_type}'))
+                conn.commit()
+
 def init_db():
     try:
         with app.app_context():
             db.create_all()
             create_admin()
+            migrate_db() # Run migration check
     except Exception as e:
         print(f"DB Init Error: {e}")
 
@@ -194,5 +226,6 @@ if getattr(sys, 'frozen', False):
     init_db()
 
 if __name__ == '__main__':
+    # Initialize DB (Create tables + Migrate calls)
     init_db()
     app.run(debug=True)

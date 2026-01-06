@@ -12,7 +12,13 @@ class Case(db.Model):
     # Read-only / Form Input fields
     nama_tersangka = db.Column(db.String(200))
     pasal = db.Column(db.String(200))
-    spdp = db.Column(db.String(200)) # e.g. "NO. 123 TGL 01-01-2023"
+    spdp = db.Column(db.String(200), nullable=True) # Legacy field
+    
+    # New SPDP Fields
+    spdp_tgl_terima = db.Column(db.String(50)) # Kejaksaan Received Date
+    spdp_ket_terima = db.Column(db.String(200)) # Kejaksaan Details
+    spdp_tgl_polisi = db.Column(db.String(50)) # Police Date
+    spdp_ket_polisi = db.Column(db.String(200)) # Police Details
     
     # Editable Stage fields
     berkas_tahap_1 = db.Column(db.String(200)) # e.g. "01-01-2023"

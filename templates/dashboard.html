@@ -13,9 +13,30 @@
                 <label>Pasal yang disangkakan</label>
                 <input type="text" name="pasal" required>
             </div>
-            <div class="form-group">
-                <label>SPDP (No & Tgl Diterima)</label>
-                <input type="text" name="spdp" placeholder="Contoh: NO.123 TGL 01/01/2023" required>
+            <!-- SPDP Input Group -->
+            <div style="grid-column: span 3; border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem;">
+                <h4 style="margin: 0 0 1rem 0; color: #2c3e50;">Detail SPDP</h4>
+                <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <!-- Kejaksaan -->
+                    <div class="form-group">
+                        <label>Tgl Terima (Kejaksaan)</label>
+                        <input type="date" name="spdp_tgl_terima" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ket. (Kejaksaan)</label>
+                        <input type="text" name="spdp_ket_terima" placeholder="No. SPDP...">
+                    </div>
+                    
+                    <!-- Kepolisian -->
+                    <div class="form-group">
+                        <label>Tgl SPDP (Kepolisian)</label>
+                        <input type="date" name="spdp_tgl_polisi">
+                    </div>
+                    <div class="form-group">
+                        <label>Ket. (Kepolisian)</label>
+                        <input type="text" name="spdp_ket_polisi" placeholder="No. Polisi...">
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -34,7 +55,7 @@
                     <th style="width: 50px;">NO</th>
                     <th>NAMA TERSANGKA</th>
                     <th>PASAL</th>
-                    <th>SPDP</th>
+                    <th style="min-width: 220px;">SPDP<br><small>(KEJAKSAAN / POLISI)</small></th>
                     <th>BERKAS TAHAP I</th>
                     <th>P-18 / P-19</th>
                     <th>P-21</th>
@@ -49,12 +70,39 @@
                     <td>{{ loop.index }}</td>
                     <td>{{ case.nama_tersangka }}</td>
                     <td>{{ case.pasal }}</td>
-                    <!-- Updated: Clickable cells for Modal Date Picker -->
-                    <td class="date-cell {{ case.spdp | check_overdue('spdp') }}" 
+                    <!-- Improved SPDP Cell -->
+                    <td class="date-cell {{ case.spdp_tgl_terima | check_overdue('spdp') }}" 
                         data-id="{{ case.id }}" 
-                        data-field="spdp" 
-                        data-value="{{ case.spdp }}">
-                        {{ case.spdp }}
+                        data-field="spdp_tgl_terima" 
+                        data-value="{{ case.spdp_tgl_terima }}"
+                        style="font-size: 0.85rem; line-height: 1.4;">
+                        
+                        <!-- Click to edit Kejaksaan Date (Primary) -->
+                        <div style="margin-bottom: 6px;">
+                            <span style="display:block; font-weight:bold; color:var(--primary-color);">Kejaksaan:</span>
+                            {% if case.spdp_tgl_terima %}
+                                {{ case.spdp_tgl_terima }}
+                            {% else %}
+                                <span style="color:#999;">-</span>
+                            {% endif %}
+                            
+                            {% if case.spdp_ket_terima %}
+                            <br><small style="color:#666;">Ket: {{ case.spdp_ket_terima }}</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #ddd; padding-top: 6px;">
+                            <span style="display:block; font-weight:bold; color:var(--secondary-color);">Kepolisian:</span>
+                             {% if case.spdp_tgl_polisi %}
+                                {{ case.spdp_tgl_polisi }}
+                            {% else %}
+                                <span style="color:#999;">-</span>
+                            {% endif %}
+
+                            {% if case.spdp_ket_polisi %}
+                            <br><small style="color:#666;">Ket: {{ case.spdp_ket_polisi }}</small>
+                            {% endif %}
+                        </div>
                     </td>
                     
                     <td class="date-cell {{ case.berkas_tahap_1 | check_overdue('berkas_tahap_1') }}"
