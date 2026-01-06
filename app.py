@@ -8,16 +8,40 @@ from dateutil import parser
 import re
 
 import os
+import sys
 
-app = Flask(__name__)
+# Define base path for resources (templates/static)
+if getattr(sys, 'frozen', False):
+    # Running as compiled .exe
+    # PyInstaller extracts data to sys._MEIPASS
+    base_dir = sys._MEIPASS
+    template_dir = os.path.join(base_dir, 'templates')
+    static_dir = os.path.join(base_dir, 'static')
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+else:
+    # Running normal python script
+    app = Flask(__name__, template_folder='templates', static_folder='static')
+
 app.config['SECRET_KEY'] = 'kejaksaan-secret-key-123'
 
-# Use DATABASE_URL if provided (Railway/Heroku), else fall back to local SQLite
-database_url = os.environ.get('DATABASE_URL')
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)  # Fix for some platforms using postgres://
+# Database Configuration Logic
+if getattr(sys, 'frozen', False):
+    # Mode: Desktop App (.exe)
+    # Store database next to the executable file
+    exe_dir = os.path.dirname(sys.executable)
+    db_path = os.path.join(exe_dir, 'kejaksaan.db')
+    # Use forward slashes for SQLite URI to avoid Windows backslash issues
+    db_path = db_path.replace('\\', '/')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+else:
+    # Mode: Web Server / Development
+    # Use DATABASE_URL if provided (Railway/Heroku), else fall back to local instance
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)  # Fix for some platforms
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///kejaksaan.db'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///kejaksaan.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -157,8 +181,18 @@ def create_admin():
         db.session.commit()
         print("Admin user created (admin/12345)")
 
+def init_db():
+    try:
+        with app.app_context():
+            db.create_all()
+            create_admin()
+    except Exception as e:
+        print(f"DB Init Error: {e}")
+
+# Auto-initialize DB if running as frozen app (desktop) to ensure tables exist
+if getattr(sys, 'frozen', False):
+    init_db()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        create_admin()
+    init_db()
     app.run(debug=True)
