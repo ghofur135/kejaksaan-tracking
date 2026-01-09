@@ -1,0 +1,1 @@
+pyinstaller --noconsole --onefile --add-data "templates;templates" --add-data "static;static" --hidden-import=engineio.async_drivers.threading desktop.py

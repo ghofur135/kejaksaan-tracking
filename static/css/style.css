@@ -104,7 +104,8 @@ label {
 input[type="text"], 
 input[type="password"],
 input[type="date"],
-input[type="datetime-local"] {
+input[type="datetime-local"],
+input[type="number"] {
     width: 100%;
     padding: 0.875rem 1rem;
     border: 1px solid #e2e8f0;

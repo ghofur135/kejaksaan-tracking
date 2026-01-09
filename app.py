@@ -60,9 +60,12 @@ def parse_date(date_str):
         return None
     
     try:
-        # parser.parse is smart enough to handle most formats
-        # dayfirst=True ensures 01/02/2023 is treated as 1st Feb (common in ID/UK)
-        # It handles YYYY-MM-DD correctly automatically (year first is unambiguous)
+        # Check for ISO format YYYY-MM-DD via regex to avoid ambiguity
+        if isinstance(date_str, str) and re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+            return parser.parse(date_str, yearfirst=True, dayfirst=False)
+            
+        # Fallback: parser is smart enough to handle most formats
+        # dayfirst=True ensures 01/02/2023 is treated as 1st Feb
         return parser.parse(date_str, dayfirst=True)
     except (ValueError, TypeError):
         return None
