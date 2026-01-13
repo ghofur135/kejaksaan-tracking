@@ -3,7 +3,7 @@ from extensions import db, login_manager
 from models import User, Case
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import parser
 import re
 
@@ -73,8 +73,11 @@ def parse_date(date_str):
 def is_date_overdue(date_obj, days_limit):
     if not date_obj:
         return False
-    delta = datetime.now() - date_obj
-    return delta.days > days_limit
+    # Hitung tanggal deadline: tanggal input + (days_limit - 1) hari
+    # Karena hari input sudah dihitung sebagai hari ke-1
+    deadline = date_obj + timedelta(days=days_limit - 1)
+    # Cek apakah hari ini sudah melewati deadline
+    return datetime.now().date() > deadline.date()
 
 @app.template_filter('check_overdue')
 def check_overdue(value, field_name):
@@ -88,11 +91,11 @@ def check_overdue(value, field_name):
         return ""
     
     limits = {
-        'spdp': 25, # Overdue jika: Hari Ini > (Tgl SPDP + 25 hari)
-        'berkas_tahap_1': 6,
-        'p18_p19': 10,
-        'p21': 12,
-        'tahap_2': 7
+        'spdp': 25,             # Overdue jika: Hari Ini > (Tgl Input + 24 hari) - SPDP 25 hari kalender
+        'berkas_tahap_1': 6,    # Overdue jika: Hari Ini > (Tgl Input + 5 hari) - Berkas Tahap I 6 hari kalender  
+        'p18_p19': 10,          # Overdue jika: Hari Ini > (Tgl Input + 9 hari) - P-18/P-19 10 hari kalender
+        'p21': 12,              # Overdue jika: Hari Ini > (Tgl Input + 11 hari) - P-21 12 hari kalender
+        'tahap_2': 7            # Overdue jika: Hari Ini > (Tgl Input + 6 hari) - Tahap II 7 hari kalender
     }
     
     limit = limits.get(field_name)
