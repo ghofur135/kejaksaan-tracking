@@ -5,43 +5,70 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from dateutil import parser
+from sqlalchemy.pool import NullPool
+from urllib.parse import quote_plus
 import re
-
 import os
-import sys
 
-# Define base path for resources (templates/static)
-if getattr(sys, 'frozen', False):
-    # Running as compiled .exe
-    # PyInstaller extracts data to sys._MEIPASS
-    base_dir = sys._MEIPASS
-    template_dir = os.path.join(base_dir, 'templates')
-    static_dir = os.path.join(base_dir, 'static')
-    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-else:
-    # Running normal python script
-    app = Flask(__name__, template_folder='templates', static_folder='static')
+# Load environment variables from .env file for local development
+from dotenv import load_dotenv
+load_dotenv()
 
-app.config['SECRET_KEY'] = 'kejaksaan-secret-key-123'
+# Initialize Flask app
+app = Flask(__name__)
 
-# Database Configuration Logic
-if getattr(sys, 'frozen', False):
-    # Mode: Desktop App (.exe)
-    # Store database next to the executable file
-    exe_dir = os.path.dirname(sys.executable)
-    db_path = os.path.join(exe_dir, 'kejaksaan.db')
-    # Use forward slashes for SQLite URI to avoid Windows backslash issues
-    db_path = db_path.replace('\\', '/')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-else:
-    # Mode: Web Server / Development
-    # Use DATABASE_URL if provided (Railway/Heroku), else fall back to local instance
-    database_url = os.environ.get('DATABASE_URL')
-    if database_url and database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)  # Fix for some platforms
+# Read environment variables
+DATABASE_URL = os.environ.get('DATABASE_URL')
+SUPABASE_DB_PASSWORD = os.environ.get('SUPABASE_DB_PASSWORD')
+SUPABASE_PROJECT_REF = os.environ.get('SUPABASE_PROJECT_REF')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+app.config['SECRET_KEY'] = SECRET_KEY
+
+def get_database_url():
+    """
+    Build PostgreSQL connection string for Supabase.
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///kejaksaan.db'
+    Based on Supabase best practices:
+    https://supabase.com/docs/guides/troubleshooting/using-sqlalchemy-with-supabase
+    
+    For serverless/Vercel: Use Transaction Mode Pooler (port 6543) with NullPool
+    
+    Returns:
+        str: PostgreSQL connection string
+        
+    Raises:
+        ValueError: If required environment variables are missing
+    """
+    # Method 1: Use DATABASE_URL directly (recommended)
+    if DATABASE_URL:
+        # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+        if DATABASE_URL.startswith("postgres://"):
+            return DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        return DATABASE_URL
+    
+    # Method 2: Build from components
+    if SUPABASE_DB_PASSWORD and SUPABASE_PROJECT_REF:
+        # URL encode password to handle special characters
+        encoded_password = quote_plus(SUPABASE_DB_PASSWORD)
+        
+        # Use Transaction Mode Pooler (port 6543) for serverless
+        # Format: postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+        return f"postgresql://postgres.{SUPABASE_PROJECT_REF}:{encoded_password}@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
+    
+    raise ValueError(
+        "Missing required environment variables for database connection.\n"
+        "Please set one of the following:\n"
+        "  1. DATABASE_URL - full connection string from Supabase dashboard (Settings > Database > Connection string > Transaction)\n"
+        "  2. SUPABASE_DB_PASSWORD and SUPABASE_PROJECT_REF\n"
+    )
 
+# Database Configuration
+# Use NullPool for serverless/transaction mode as per Supabase best practices
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'poolclass': NullPool,  # Required for Supabase Transaction Mode Pooler
+}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -195,7 +222,7 @@ def update_cell():
     return jsonify({'success': True})
 
 def create_admin():
-    # Helper to create default admin
+    """Create default admin user if not exists"""
     if not User.query.filter_by(username='admin').first():
         hashed_pw = generate_password_hash('12345', method='scrypt')
         admin = User(username='admin', password_hash=hashed_pw)
@@ -203,42 +230,16 @@ def create_admin():
         db.session.commit()
         print("Admin user created (admin/12345)")
 
-def migrate_db():
-    """Check for missing columns and add them (SQLite Migration)"""
-    inspector = db.inspect(db.engine)
-    columns = [col['name'] for col in inspector.get_columns('case')]
-    
-    new_cols = {
-        'spdp_tgl_terima': 'VARCHAR(50)',
-        'spdp_ket_terima': 'VARCHAR(200)',
-        'spdp_tgl_polisi': 'VARCHAR(50)',
-        'spdp_ket_polisi': 'VARCHAR(200)',
-        'umur_tersangka': 'INTEGER',
-        'jpu': 'VARCHAR(200)'
-    }
-    
-    with db.engine.connect() as conn:
-        for col_name, col_type in new_cols.items():
-            if col_name not in columns:
-                print(f"Migrating: Adding {col_name} to case table...")
-                # Use double quotes for table name "case" because it is a reserved keyword in SQL
-                conn.execute(db.text(f'ALTER TABLE "case" ADD COLUMN {col_name} {col_type}'))
-                conn.commit()
-
 def init_db():
+    """Initialize database tables on first run"""
     try:
         with app.app_context():
             db.create_all()
             create_admin()
-            migrate_db() # Run migration check
     except Exception as e:
         print(f"DB Init Error: {e}")
 
-# Auto-initialize DB if running as frozen app (desktop) to ensure tables exist
-if getattr(sys, 'frozen', False):
-    init_db()
-
 if __name__ == '__main__':
-    # Initialize DB (Create tables + Migrate calls)
+    # Initialize DB (Create tables + admin user)
     init_db()
     app.run(debug=True)
