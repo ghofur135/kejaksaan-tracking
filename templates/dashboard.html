@@ -14,6 +14,13 @@
                 <input type="number" name="umur_tersangka" min="0" placeholder="0">
             </div>
             <div class="form-group">
+                <label>Kategori Umur</label>
+                <select name="kategori_umur" required>
+                    <option value="Dewasa">Dewasa</option>
+                    <option value="Anak">Anak</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Pasal yang disangkakan</label>
                 <input type="text" name="pasal" required>
             </div>
@@ -35,11 +42,11 @@
                     
                     <!-- Kepolisian -->
                     <div class="form-group">
-                        <label>Tanggal Pemberitahuan Penyidikan</label>
+                        <label>Tanggal SPDP</label>
                         <input type="date" name="spdp_tgl_polisi">
                     </div>
                     <div class="form-group">
-                        <label>Nomor</label>
+                        <label>Nomor SPDP</label>
                         <input type="text" name="spdp_ket_polisi" placeholder="No. Polisi...">
                     </div>
                 </div>
@@ -61,6 +68,7 @@
                     <th style="width: 50px;">NO</th>
                     <th>NAMA TERSANGKA</th>
                     <th>UMUR</th>
+                    <th>KATEGORI</th>
                     <th>PASAL</th>
                     <th>JPU</th>
                     <th style="min-width: 220px;">SPDP<br><small>(KEJAKSAAN / POLISI)</small></th>
@@ -78,10 +86,11 @@
                     <td>{{ loop.index }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="nama_tersangka">{{ case.nama_tersangka }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="umur_tersangka">{{ case.umur_tersangka or '' }}</td>
+                    <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="kategori_umur">{{ case.kategori_umur or 'Dewasa' }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="pasal">{{ case.pasal }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="jpu">{{ case.jpu or '' }}</td>
                     <!-- Improved SPDP Cell -->
-                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.spdp_tgl_terima | check_overdue('spdp') }}{% endif %}" 
+                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.spdp_tgl_terima | check_overdue('spdp', case.kategori_umur or 'Dewasa') }}{% endif %}" 
                         data-id="{{ case.id }}" 
                         data-field="spdp_tgl_terima" 
                         data-value="{{ case.spdp_tgl_terima }}"
@@ -102,7 +111,7 @@
                         </div>
                         
                         <div style="border-top: 1px dashed #ddd; padding-top: 6px;">
-                            <span style="display:block; font-weight:bold; color:{% if case.is_complete %}#10b981{% else %}var(--secondary-color){% endif %};">Tanggal Pemberitahuan Penyidikan:</span>
+                            <span style="display:block; font-weight:bold; color:{% if case.is_complete %}#10b981{% else %}var(--secondary-color){% endif %};">Tanggal SPDP:</span>
                              {% if case.spdp_tgl_polisi %}
                                 {{ case.spdp_tgl_polisi }}
                             {% else %}
@@ -115,28 +124,28 @@
                         </div>
                     </td>
                     
-                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.berkas_tahap_1 | check_overdue('berkas_tahap_1') }}{% endif %}"
+                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.berkas_tahap_1 | check_overdue('berkas_tahap_1', case.kategori_umur or 'Dewasa') }}{% endif %}"
                         data-id="{{ case.id }}" 
                         data-field="berkas_tahap_1"
                         data-value="{{ case.berkas_tahap_1 }}">
                         {{ case.berkas_tahap_1 }}
                     </td>
                         
-                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.p18_p19 | check_overdue('p18_p19') }}{% endif %}"
+                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.p18_p19 | check_overdue('p18_p19', case.kategori_umur or 'Dewasa') }}{% endif %}"
                         data-id="{{ case.id }}" 
                         data-field="p18_p19"
                         data-value="{{ case.p18_p19 }}">
                         {{ case.p18_p19 }}
                     </td>
                         
-                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.p21 | check_overdue('p21') }}{% endif %}"
+                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.p21 | check_overdue('p21', case.kategori_umur or 'Dewasa') }}{% endif %}"
                         data-id="{{ case.id }}" 
                         data-field="p21"
                         data-value="{{ case.p21 }}">
                         {{ case.p21 }}
                     </td>
                         
-                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.tahap_2 | check_overdue('tahap_2') }}{% endif %}"
+                    <td class="date-cell {% if case.is_complete %}text-success-bold{% else %}{{ case.tahap_2 | check_overdue('tahap_2', case.kategori_umur or 'Dewasa') }}{% endif %}"
                         data-id="{{ case.id }}" 
                         data-field="tahap_2"
                         data-value="{{ case.tahap_2 }}">

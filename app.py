@@ -107,23 +107,36 @@ def is_date_overdue(date_obj, days_limit):
     return datetime.now().date() > deadline.date()
 
 @app.template_filter('check_overdue')
-def check_overdue(value, field_name):
+def check_overdue(value, field_name, kategori_umur='Dewasa'):
     """
     Filter to check if a field is overdue.
-    Usage: {{ case.spdp | check_overdue('spdp') }}
+    Usage: {{ case.spdp | check_overdue('spdp', case.kategori_umur) }}
     Returns: 'overdue-cell' if true, else ''
     """
     date_obj = parse_date(value)
     if not date_obj:
         return ""
     
-    limits = {
+    # Logic untuk Dewasa (default)
+    limits_dewasa = {
         'spdp': 25,             # Overdue jika: Hari Ini > (Tgl Input + 24 hari) - SPDP 25 hari kalender
         'berkas_tahap_1': 6,    # Overdue jika: Hari Ini > (Tgl Input + 5 hari) - Berkas Tahap I 6 hari kalender  
         'p18_p19': 10,          # Overdue jika: Hari Ini > (Tgl Input + 9 hari) - P-18/P-19 10 hari kalender
         'p21': 12,              # Overdue jika: Hari Ini > (Tgl Input + 11 hari) - P-21 12 hari kalender
         'tahap_2': 7            # Overdue jika: Hari Ini > (Tgl Input + 6 hari) - Tahap II 7 hari kalender
     }
+    
+    # Logic untuk Anak
+    limits_anak = {
+        'spdp': 25,             # SPDP tetap 25 hari
+        'berkas_tahap_1': 3,    # Berkas Tahap I 3 hari kalender
+        'p18_p19': 7,           # P-18/P-19 7 hari kalender
+        'p21': 10,              # P-21 10 hari kalender
+        'tahap_2': 5            # Tahap II 5 hari kalender
+    }
+    
+    # Pilih limits berdasarkan kategori umur
+    limits = limits_anak if kategori_umur == 'Anak' else limits_dewasa
     
     limit = limits.get(field_name)
     if limit and is_date_overdue(date_obj, limit):
@@ -166,6 +179,7 @@ def dashboard():
 def add_case():
     nama = request.form.get('nama_tersangka')
     umur = request.form.get('umur_tersangka')
+    kategori_umur = request.form.get('kategori_umur', 'Dewasa')
     pasal = request.form.get('pasal')
     jpu = request.form.get('jpu')
     
@@ -178,6 +192,7 @@ def add_case():
     new_case = Case(
         nama_tersangka=nama,
         umur_tersangka=umur,
+        kategori_umur=kategori_umur,
         pasal=pasal,
         jpu=jpu,
         spdp_tgl_terima=tgl_terima,
@@ -212,7 +227,7 @@ def update_cell():
     allowed_fields = [
         'berkas_tahap_1', 'p18_p19', 'p21', 'tahap_2', 'limpah_pn', 'keterangan',
         'spdp_tgl_terima', 'spdp_tgl_polisi', # Allow editing dates via modal
-        'nama_tersangka', 'umur_tersangka', 'pasal', 'jpu' # Allow editing text fields
+        'nama_tersangka', 'umur_tersangka', 'kategori_umur', 'pasal', 'jpu' # Allow editing text fields
     ]
     if field not in allowed_fields:
         return jsonify({'success': False, 'error': 'Field not editable'}), 403

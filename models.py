@@ -12,6 +12,7 @@ class Case(db.Model):
     # Read-only / Form Input fields
     nama_tersangka = db.Column(db.String(200))
     umur_tersangka = db.Column(db.Integer) # New Field
+    kategori_umur = db.Column(db.String(20), default='Dewasa') # Dewasa or Anak
     pasal = db.Column(db.String(200))
     jpu = db.Column(db.String(200)) # New Field
     spdp = db.Column(db.String(200), nullable=True) # Legacy field
@@ -49,6 +50,7 @@ class Case(db.Model):
             'id': self.id,
             'nama_tersangka': self.nama_tersangka,
             'umur_tersangka': self.umur_tersangka,
+            'kategori_umur': self.kategori_umur,
             'pasal': self.pasal,
             'jpu': self.jpu,
             'spdp': self.spdp,
