@@ -1,0 +1,119 @@
+================================================================================
+  CARA BUILD E-KEJAKSAAN KE .EXE (DESKTOP APP)
+================================================================================
+
+📋 RINGKASAN:
+- Aplikasi tetap pakai Supabase (database cloud)
+- .exe akan embed credentials dari file .env
+- User tidak perlu install Python
+- Buka aplikasi langsung seperti desktop app (tidak perlu browser)
+
+================================================================================
+  LANGKAH-LANGKAH BUILD
+================================================================================
+
+1️⃣  INSTALL DEPENDENCIES (Sekali saja)
+   
+   pip install -r requirements.txt
+
+   Atau manual:
+   pip install pyinstaller pywebview
+
+
+2️⃣  PASTIKAN FILE .ENV SUDAH BENAR
+   
+   File .env harus berisi:
+   - DATABASE_URL (connection string Supabase)
+   - SECRET_KEY (Flask secret key)
+
+   Contoh:
+   DATABASE_URL=postgresql://postgres.xxx:password@aws-xxx.pooler.supabase.com:6543/postgres
+   SECRET_KEY=your-secret-key-here
+
+
+3️⃣  JALANKAN BUILD SCRIPT
+   
+   python build_exe.py
+
+   Script akan otomatis:
+   ✅ Embed credentials dari .env
+   ✅ Build dengan PyInstaller
+   ✅ Cleanup file temporary
+   ✅ Buat file E-Kejaksaan.exe di folder dist/
+
+
+4️⃣  HASIL BUILD
+   
+   Lokasi: dist/E-Kejaksaan.exe
+   Ukuran: ~50-80 MB
+   
+   File ini sudah standalone, bisa langsung di-copy ke komputer lain!
+
+================================================================================
+  CARA MENGGUNAKAN .EXE
+================================================================================
+
+1. Copy file "E-Kejaksaan.exe" ke komputer target
+2. Double-click untuk menjalankan
+3. Aplikasi akan terbuka seperti desktop app
+4. Login dengan username/password yang sama
+5. Pastikan ada koneksi internet (untuk akses Supabase)
+
+================================================================================
+  ⚠️  PENTING - KEAMANAN
+================================================================================
+
+❌ JANGAN share .exe ke publik atau internet
+   Alasan: Credentials database sudah embedded di dalam .exe
+   
+✅ Hanya untuk internal use (tim kejaksaan saja)
+
+✅ Siapapun yang punya .exe bisa akses database
+   Solusi: Buat user dengan password kuat
+
+✅ Monitor akses database dari Supabase dashboard
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+❓ Build gagal - "PyInstaller not found"
+   Solusi: pip install pyinstaller
+
+❓ Build gagal - "pywebview not found"  
+   Solusi: pip install pywebview
+
+❓ .exe tidak jalan - "Missing DLL"
+   Solusi: Install Visual C++ Redistributable
+   Link: https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+❓ .exe tidak bisa connect database
+   Solusi:
+   - Pastikan ada koneksi internet
+   - Cek firewall tidak block aplikasi
+   - Test connection string di .env sebelum build
+
+❓ Mau rebuild dengan credentials baru
+   Solusi:
+   1. Edit file .env
+   2. Jalankan lagi: python build_exe.py
+
+================================================================================
+  DOKUMENTASI LENGKAP
+================================================================================
+
+📖 BUILD_README.md       - Quick start guide
+📖 docs/build-exe.md     - Dokumentasi lengkap
+📖 build_exe.py          - Build script (otomatis)
+
+================================================================================
+  KONTAK & SUPPORT
+================================================================================
+
+Jika ada masalah saat build, cek:
+1. Python version: python --version (minimal 3.8)
+2. Dependencies: pip list
+3. File .env sudah benar
+4. Koneksi internet aktif (untuk download dependencies PyInstaller)
+
+================================================================================

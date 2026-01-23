@@ -19,6 +19,9 @@ ENV/
 build/
 dist/
 *.spec
+app_embedded.py
+desktop_embedded.py
+kejaksaan.spec
 
 # Database
 *.db

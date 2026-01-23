@@ -75,4 +75,40 @@ Sistem akan memberikan tanda merah (!) jika:
 ## 📝 Catatan Pengembang
 
 - Pastikan format tanggal input konsisten (sistem mendukung format `YYYY-MM-DD` dan `DD-MM-YYYY`).
-- Database `kejaksaan.db` akan dibuat otomatis di folder `instance/` saat pertama kali dijalankan.
+- Database menggunakan Supabase (PostgreSQL cloud) untuk sinkronisasi multi-device.
+- File `.env` diperlukan untuk konfigurasi database (lihat `.env.example`).
+
+## 💻 Desktop App (.exe)
+
+Aplikasi ini bisa di-build menjadi **desktop app standalone** yang tidak perlu browser!
+
+### Quick Start Build:
+```bash
+# 1. Install dependencies
+pip install pyinstaller pywebview
+
+# 2. Build .exe
+python build_exe.py
+
+# 3. Hasil ada di dist/E-Kejaksaan.exe
+```
+
+### Fitur Desktop App:
+- ✅ Tidak perlu install Python
+- ✅ Tidak perlu buka browser
+- ✅ Tampilan seperti aplikasi native
+- ✅ Credentials sudah embedded
+- ✅ Tetap pakai Supabase (butuh internet)
+
+### Dokumentasi Build:
+- 📚 **Index Dokumentasi**: `docs/INDEX.md` (lihat semua dokumentasi)
+- 📖 **Quick Start**: `docs/BUILD_README.md`
+- 📖 **Lengkap**: `docs/build-exe.md`
+- 📖 **Cheatsheet**: `docs/BUILD_CHEATSHEET.md`
+- 📝 **Bahasa Indonesia**: `docs/CARA_BUILD_EXE.txt`
+- 🏗️ **Arsitektur**: `docs/ARCHITECTURE.md`
+
+### Test Setup:
+```bash
+python test_build_setup.py
+```

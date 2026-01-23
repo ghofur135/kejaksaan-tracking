@@ -17,11 +17,15 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Read environment variables
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# Embedded credentials for .exe build (will be replaced by build script)
+EMBEDDED_DATABASE_URL = None  # Will be set by build_exe.py
+EMBEDDED_SECRET_KEY = None    # Will be set by build_exe.py
+
+# Read environment variables (prioritize embedded for .exe, fallback to .env for dev)
+DATABASE_URL = EMBEDDED_DATABASE_URL or os.environ.get('DATABASE_URL')
 SUPABASE_DB_PASSWORD = os.environ.get('SUPABASE_DB_PASSWORD')
 SUPABASE_PROJECT_REF = os.environ.get('SUPABASE_PROJECT_REF')
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+SECRET_KEY = EMBEDDED_SECRET_KEY or os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
