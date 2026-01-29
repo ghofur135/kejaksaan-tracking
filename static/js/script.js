@@ -12,9 +12,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const deleteButtons = document.querySelectorAll('.btn-delete');
+    
+    // Pagination Elements
+    const perPageSelect = document.getElementById('perPageSelect');
 
     let currentCell = null;
     let currentDeleteId = null;
+
+    // Handle Per Page Change
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('per_page', this.value);
+            urlParams.set('page', '1'); // Reset to first page
+            window.location.search = urlParams.toString();
+        });
+    }
 
     // Handle ContentEditable (Text areas)
     editableCells.forEach(cell => {

@@ -63,6 +63,27 @@
 
 <div class="card">
     <h3>Data Perkara</h3>
+    
+    <!-- Pagination Controls Top -->
+    <div class="pagination-controls">
+        <div class="per-page-selector">
+            <label for="perPageSelect">Tampilkan:</label>
+            <select id="perPageSelect" class="per-page-select">
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                <option value="30" {% if per_page == 30 %}selected{% endif %}>30</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+            <span class="per-page-label">data per halaman</span>
+        </div>
+        
+        <div class="pagination-info">
+            Menampilkan {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - 
+            {{ min(pagination.page * pagination.per_page, pagination.total) }} 
+            dari {{ pagination.total }} data
+        </div>
+    </div>
+    
     <div class="data-table-container">
         <table>
             <thead>
@@ -86,7 +107,7 @@
             <tbody>
                 {% for case in cases %}
                 <tr>
-                    <td>{{ loop.index }}</td>
+                    <td>{{ ((pagination.page - 1) * pagination.per_page) + loop.index }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="nama_tersangka">{{ case.nama_tersangka }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="umur_tersangka">{{ case.umur_tersangka or '' }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="kategori_umur">{{ case.kategori_umur or 'Dewasa' }}</td>
@@ -178,6 +199,63 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    
+    <!-- Pagination Controls Bottom -->
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            <!-- First Page -->
+            {% if pagination.has_prev %}
+            <a href="?page=1&per_page={{ per_page }}" class="pagination-btn">
+                <span>«</span>
+            </a>
+            <a href="?page={{ pagination.prev_num }}&per_page={{ per_page }}" class="pagination-btn">
+                <span>‹</span>
+            </a>
+            {% else %}
+            <span class="pagination-btn disabled">«</span>
+            <span class="pagination-btn disabled">‹</span>
+            {% endif %}
+            
+            <!-- Page Numbers -->
+            {% set start_page = [pagination.page - 2, 1]|max %}
+            {% set end_page = [pagination.page + 2, pagination.pages]|min %}
+            
+            {% if start_page > 1 %}
+            <a href="?page=1&per_page={{ per_page }}" class="pagination-btn">1</a>
+            {% if start_page > 2 %}
+            <span class="pagination-ellipsis">...</span>
+            {% endif %}
+            {% endif %}
+            
+            {% for p in range(start_page, end_page + 1) %}
+            {% if p == pagination.page %}
+            <span class="pagination-btn active">{{ p }}</span>
+            {% else %}
+            <a href="?page={{ p }}&per_page={{ per_page }}" class="pagination-btn">{{ p }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if end_page < pagination.pages %}
+            {% if end_page < pagination.pages - 1 %}
+            <span class="pagination-ellipsis">...</span>
+            {% endif %}
+            <a href="?page={{ pagination.pages }}&per_page={{ per_page }}" class="pagination-btn">{{ pagination.pages }}</a>
+            {% endif %}
+            
+            <!-- Next Page -->
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next_num }}&per_page={{ per_page }}" class="pagination-btn">
+                <span>›</span>
+            </a>
+            <a href="?page={{ pagination.pages }}&per_page={{ per_page }}" class="pagination-btn">
+                <span>»</span>
+            </a>
+            {% else %}
+            <span class="pagination-btn disabled">›</span>
+            <span class="pagination-btn disabled">»</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 

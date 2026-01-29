@@ -175,8 +175,25 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    cases = Case.query.order_by(Case.created_at.desc()).all()
-    return render_template('dashboard.html', cases=cases)
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Validate per_page values
+    if per_page not in [10, 30, 50, 100]:
+        per_page = 10
+    
+    # Query with pagination
+    pagination = Case.query.order_by(Case.created_at.desc()).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+    
+    return render_template('dashboard.html', 
+                         cases=pagination.items,
+                         pagination=pagination,
+                         per_page=per_page)
 
 @app.route('/add_case', methods=['POST'])
 @login_required
