@@ -5,7 +5,8 @@ from app import app
 import time
 
 def start_server():
-    app.run(port=5000, debug=False)
+    """Start Flask server without reloader (required for PyInstaller)"""
+    app.run(port=5000, debug=False, use_reloader=False, threaded=True)
 
 if __name__ == '__main__':
     # Start Flask in a separate thread
@@ -13,16 +14,17 @@ if __name__ == '__main__':
     t.daemon = True
     t.start()
     
-    # Give server a second to start
-    time.sleep(1)
+    # Give server more time to start
+    time.sleep(2)
 
     # Create a native window pointing to the Flask app
     webview.create_window(
         'E-Kejaksaan Tracking System', 
         'http://127.0.0.1:5000',
-        width=1200,
-        height=800,
-        resizable=True
+        width=1400,
+        height=900,
+        resizable=True,
+        fullscreen=False
     )
     
     # Start the GUI loop
