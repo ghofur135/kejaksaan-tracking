@@ -175,25 +175,53 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get pagination parameters
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    
-    # Validate per_page values
-    if per_page not in [10, 30, 50, 100]:
-        per_page = 10
-    
-    # Query with pagination
-    pagination = Case.query.order_by(Case.created_at.desc()).paginate(
-        page=page, 
-        per_page=per_page, 
-        error_out=False
-    )
-    
-    return render_template('dashboard.html', 
-                         cases=pagination.items,
-                         pagination=pagination,
-                         per_page=per_page)
+    try:
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Validate per_page values
+        if per_page not in [10, 30, 50, 100]:
+            per_page = 10
+        
+        # Validate page number
+        if page < 1:
+            page = 1
+        
+        # Query with pagination
+        pagination = Case.query.order_by(Case.created_at.desc()).paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+        
+        return render_template('dashboard.html', 
+                             cases=pagination.items,
+                             pagination=pagination,
+                             per_page=per_page)
+    except Exception as e:
+        # Log error for debugging
+        print(f"Dashboard error: {str(e)}")
+        # Fallback to simple query without pagination
+        cases = Case.query.order_by(Case.created_at.desc()).limit(10).all()
+        # Create a simple pagination object
+        class SimplePagination:
+            def __init__(self, items):
+                self.items = items
+                self.page = 1
+                self.per_page = 10
+                self.total = len(items)
+                self.pages = 1
+                self.has_prev = False
+                self.has_next = False
+                self.prev_num = None
+                self.next_num = None
+        
+        pagination = SimplePagination(cases)
+        return render_template('dashboard.html', 
+                             cases=cases,
+                             pagination=pagination,
+                             per_page=10)
 
 @app.route('/add_case', methods=['POST'])
 @login_required

@@ -78,9 +78,13 @@
         </div>
         
         <div class="pagination-info">
+            {% if pagination and pagination.total > 0 %}
             Menampilkan {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - 
-            {{ min(pagination.page * pagination.per_page, pagination.total) }} 
+            {{ [pagination.page * pagination.per_page, pagination.total]|min }} 
             dari {{ pagination.total }} data
+            {% else %}
+            Tidak ada data
+            {% endif %}
         </div>
     </div>
     
@@ -107,7 +111,7 @@
             <tbody>
                 {% for case in cases %}
                 <tr>
-                    <td>{{ ((pagination.page - 1) * pagination.per_page) + loop.index }}</td>
+                    <td>{% if pagination %}{{ ((pagination.page - 1) * pagination.per_page) + loop.index }}{% else %}{{ loop.index }}{% endif %}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="nama_tersangka">{{ case.nama_tersangka }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="umur_tersangka">{{ case.umur_tersangka or '' }}</td>
                     <td class="editable" contenteditable="true" data-id="{{ case.id }}" data-field="kategori_umur">{{ case.kategori_umur or 'Dewasa' }}</td>
@@ -202,6 +206,7 @@
     </div>
     
     <!-- Pagination Controls Bottom -->
+    {% if pagination and pagination.pages > 1 %}
     <div class="pagination-wrapper">
         <div class="pagination">
             <!-- First Page -->
@@ -257,6 +262,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <!-- Date Picker Modal -->
