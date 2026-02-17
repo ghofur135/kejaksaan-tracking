@@ -246,15 +246,13 @@ def build_exe():
     print("   Ini akan memakan waktu beberapa menit...\n")
     
     try:
-        # Run PyInstaller using python -m (works better with venv)
+        # Run PyInstaller with real-time output (no capture)
         result = subprocess.run(
             [sys.executable, '-m', 'PyInstaller', '--clean', 'kejaksaan.spec'],
-            check=True,
-            capture_output=True,
-            text=True
+            check=True
         )
         
-        print("✅ Build berhasil!")
+        print("\n✅ Build berhasil!")
         
         # Determine output file based on OS
         if os_name == "Windows":
@@ -271,12 +269,11 @@ def build_exe():
         return True
         
     except subprocess.CalledProcessError as e:
-        print("❌ Build gagal!")
-        print(f"Error output:")
-        print(e.stderr if e.stderr else e.stdout)
+        print("\n❌ Build gagal!")
+        print(f"Error: {str(e)}")
         return False
     except Exception as e:
-        print("❌ PyInstaller error!")
+        print("\n❌ PyInstaller error!")
         print(f"   Error: {str(e)}")
         print("   Install dengan: pip install pyinstaller")
         return False
