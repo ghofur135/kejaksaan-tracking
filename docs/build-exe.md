@@ -9,8 +9,9 @@ pip install pyinstaller pywebview
 
 ### 2. Pastikan .env sudah terisi
 File `.env` harus berisi:
-- `DATABASE_URL` - Connection string Supabase
 - `SECRET_KEY` - Flask secret key
+
+> **Note:** DATABASE_URL tidak perlu diset karena SQLite menggunakan file lokal.
 
 ### 3. Jalankan Build Script
 ```bash
@@ -18,8 +19,8 @@ python build_exe.py
 ```
 
 Script akan otomatis:
-- ✅ Embed credentials dari .env ke dalam .exe
-- ✅ Build dengan PyInstaller
+- ✅ Embed SECRET_KEY dari .env ke dalam .exe
+- ✅ Build dengan PyInstaller dan pywebview
 - ✅ Cleanup file temporary
 - ✅ Menghasilkan `dist/E-Kejaksaan.exe`
 
@@ -28,27 +29,28 @@ File `.exe` ada di folder `dist/`:
 - **File**: `E-Kejaksaan.exe`
 - **Ukuran**: ~50-80 MB
 - **Standalone**: Tidak perlu install Python
-- **Koneksi**: Butuh internet untuk akses Supabase
+- **Database**: SQLite lokal (folder `instance/`)
+- **Koneksi**: Tidak perlu internet
 
 ## Cara Menggunakan .exe
 
 1. Copy `E-Kejaksaan.exe` ke komputer lain
 2. Double-click untuk menjalankan
-3. Aplikasi akan terbuka seperti desktop app native
-4. Login dengan username/password yang sama
+3. Database SQLite akan otomatis terbuat di `instance/kejaksaan.db`
+4. Login dengan username: `admin`, password: `12345`
 
 ## Catatan Penting
 
-⚠️ **KEAMANAN**:
-- Credentials sudah embedded di dalam .exe
-- **JANGAN** share .exe ke publik
-- Hanya untuk internal use (tim kejaksaan)
-- Siapapun yang punya .exe bisa akses database
+⚠️ **DATABASE**:
+- Database menggunakan SQLite lokal (file di `instance/kejaksaan.db`)
+- Portable - bisa copy kemana saja bersama .exe
+- Untuk backup: copy folder `instance/`
+- Untuk restore: paste folder `instance/` di-samping .exe
 
 💡 **TIPS**:
-- Buat user dengan password kuat di database
-- Gunakan role-based access di Supabase jika perlu
-- Monitor akses database dari Supabase dashboard
+- Ganti password default admin setelah pertama kali login
+- Jangan hapus folder `instance/` karena berisi semua data
+- Untuk migrasi ke komputer lain, copy .exe + folder instance/
 
 ## Troubleshooting
 
@@ -66,17 +68,22 @@ pip install pywebview
 Install Visual C++ Redistributable:
 https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-### .exe tidak bisa connect database
-- Pastikan komputer ada koneksi internet
-- Cek firewall tidak block aplikasi
-- Test connection string di .env dulu sebelum build
+### Database tidak terbuat otomatis
+- Pastikan folder `instance/` ada di-samping .exe
+- Folder akan otomatis dibuat saat pertama kali jalan
+- Jika masih error, coba jalankan sebagai Administrator
+
+### Data hilang setelah restart
+- Pastikan folder `instance/` tidak dihapus
+- Check antivirus tidak block folder tersebut
+- Copy backup dari `instance/kejaksaan.db`
 
 ## Build Manual (Advanced)
 
 Jika ingin build manual tanpa script:
 
 ```bash
-# 1. Buat app_embedded.py (copy app.py, edit credentials)
+# 1. Buat app_embedded.py (copy app.py, edit SECRET_KEY)
 # 2. Buat desktop_embedded.py (import app_embedded)
 # 3. Build
 pyinstaller --clean --onefile --windowed \

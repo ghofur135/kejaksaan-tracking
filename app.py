@@ -5,10 +5,9 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from dateutil import parser
-from sqlalchemy.pool import NullPool
-from urllib.parse import quote_plus
 import re
 import os
+import sys
 
 # Load environment variables from .env file for local development
 from dotenv import load_dotenv
@@ -17,63 +16,42 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
+# Get base directory for absolute paths
+# When running as .exe (PyInstaller), use sys.executable directory
+# When running as .py, use __file__ directory
+if getattr(sys, 'frozen', False):
+    # Running as compiled .exe (PyInstaller)
+    basedir = os.path.dirname(sys.executable)
+else:
+    # Running as normal Python script
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Ensure instance folder exists
+instance_path = os.path.join(basedir, 'instance')
+os.makedirs(instance_path, exist_ok=True)
+
 # Embedded credentials for .exe build (will be replaced by build script)
 EMBEDDED_DATABASE_URL = None  # Will be set by build_exe.py
 EMBEDDED_SECRET_KEY = None    # Will be set by build_exe.py
 
 # Read environment variables (prioritize embedded for .exe, fallback to .env for dev)
-DATABASE_URL = EMBEDDED_DATABASE_URL or os.environ.get('DATABASE_URL')
-SUPABASE_DB_PASSWORD = os.environ.get('SUPABASE_DB_PASSWORD')
-SUPABASE_PROJECT_REF = os.environ.get('SUPABASE_PROJECT_REF')
+# Use absolute path for SQLite database
+default_db_path = os.path.join(basedir, 'instance', 'kejaksaan.db')
+# Convert Windows backslashes to forward slashes for SQLite URI
+default_db_path = default_db_path.replace('\\', '/')
+DATABASE_URL = EMBEDDED_DATABASE_URL or os.environ.get('DATABASE_URL', f'sqlite:///{default_db_path}')
 SECRET_KEY = EMBEDDED_SECRET_KEY or os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
-def get_database_url():
-    """
-    Build PostgreSQL connection string for Supabase.
-    
-    Based on Supabase best practices:
-    https://supabase.com/docs/guides/troubleshooting/using-sqlalchemy-with-supabase
-    
-    For serverless/Vercel: Use Transaction Mode Pooler (port 6543) with NullPool
-    
-    Returns:
-        str: PostgreSQL connection string
-        
-    Raises:
-        ValueError: If required environment variables are missing
-    """
-    # Method 1: Use DATABASE_URL directly (recommended)
-    if DATABASE_URL:
-        # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
-        if DATABASE_URL.startswith("postgres://"):
-            return DATABASE_URL.replace("postgres://", "postgresql://", 1)
-        return DATABASE_URL
-    
-    # Method 2: Build from components
-    if SUPABASE_DB_PASSWORD and SUPABASE_PROJECT_REF:
-        # URL encode password to handle special characters
-        encoded_password = quote_plus(SUPABASE_DB_PASSWORD)
-        
-        # Use Transaction Mode Pooler (port 6543) for serverless
-        # Format: postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
-        return f"postgresql://postgres.{SUPABASE_PROJECT_REF}:{encoded_password}@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
-    
-    raise ValueError(
-        "Missing required environment variables for database connection.\n"
-        "Please set one of the following:\n"
-        "  1. DATABASE_URL - full connection string from Supabase dashboard (Settings > Database > Connection string > Transaction)\n"
-        "  2. SUPABASE_DB_PASSWORD and SUPABASE_PROJECT_REF\n"
-    )
-
-# Database Configuration
-# Use NullPool for serverless/transaction mode as per Supabase best practices
-app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'poolclass': NullPool,  # Required for Supabase Transaction Mode Pooler
-}
+# Database Configuration - SQLite Local
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Debug: Print database configuration (comment out in production)
+print(f"[DEBUG] Running mode: {'FROZEN (.exe)' if getattr(sys, 'frozen', False) else 'DEVELOPMENT (.py)'}")
+print(f"[DEBUG] Base directory: {basedir}")
+print(f"[DEBUG] Database URI: {DATABASE_URL}")
 
 db.init_app(app)
 login_manager.init_app(app)

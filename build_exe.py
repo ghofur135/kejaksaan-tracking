@@ -29,25 +29,20 @@ def load_env_file():
 
 def create_embedded_app():
     """Buat app_embedded.py dengan credentials yang sudah di-embed"""
-    print("📝 Membuat app_embedded.py dengan credentials...")
+    print("📝 Membuat app_embedded.py untuk SQLite...")
     
     env_vars = load_env_file()
-    database_url = env_vars.get('DATABASE_URL', '')
     secret_key = env_vars.get('SECRET_KEY', 'dev-secret-key')
     
-    if not database_url:
-        print("❌ DATABASE_URL tidak ditemukan di .env!")
-        sys.exit(1)
+    # SQLite tidak perlu DATABASE_URL di-embed karena menggunakan file lokal
+    # Database path akan di-handle otomatis oleh app.py dengan basedir
     
     # Baca app.py original
     with open('app.py', 'r', encoding='utf-8') as f:
         app_content = f.read()
     
     # Replace embedded credentials
-    app_content = app_content.replace(
-        'EMBEDDED_DATABASE_URL = None  # Will be set by build_exe.py',
-        f'EMBEDDED_DATABASE_URL = "{database_url}"  # Embedded by build_exe.py'
-    )
+    # Untuk SQLite, kita biarkan EMBEDDED_DATABASE_URL = None agar menggunakan default SQLite path
     app_content = app_content.replace(
         'EMBEDDED_SECRET_KEY = None    # Will be set by build_exe.py',
         f'EMBEDDED_SECRET_KEY = "{secret_key}"    # Embedded by build_exe.py'
@@ -57,7 +52,7 @@ def create_embedded_app():
     with open('app_embedded.py', 'w', encoding='utf-8') as f:
         f.write(app_content)
     
-    print("✅ app_embedded.py berhasil dibuat")
+    print("✅ app_embedded.py berhasil dibuat (SQLite mode)")
     return True
 
 def create_desktop_embedded():
@@ -298,7 +293,7 @@ def cleanup_temp_files():
 def main():
     print("=" * 60)
     print("  BUILD E-KEJAKSAAN DESKTOP APP (.EXE)")
-    print("  Credentials akan di-embed ke dalam .exe")
+    print("  Database: SQLite Local (Portable)")
     print("=" * 60)
     
     import platform
@@ -333,15 +328,17 @@ def main():
         print("\n📋 Cara menggunakan:")
         print("   1. Copy file 'dist/E-Kejaksaan.exe' ke komputer lain")
         print("   2. Double-click untuk menjalankan")
-        print("   3. Pastikan ada koneksi internet (untuk akses Supabase)")
+        print("   3. Database SQLite akan otomatis terbuat di: instance/kejaksaan.db")
         print("\n⚠️  PENTING:")
-        print("   - Credentials sudah embedded di dalam .exe")
-        print("   - Jangan share .exe ke publik (ada database credentials)")
-        print("   - Hanya untuk internal use")
+        print("   - Database menggunakan SQLite lokal (tidak perlu internet)")
+        print("   - Data disimpan di folder instance/ di-samping .exe")
+        print("   - Untuk backup, copy folder instance/kejaksaan.db")
+        print("\n💡 TIPS:")
+        print("   - Database SQLite portable, bisa copy kemana saja")
+        print("   - Pastikan tidak hapus folder instance/")
+        print("   - Login default: admin / 12345 (ubah setelah login)")
         print("\n📖 Dokumentasi:")
-        print("   - Quick Start: docs/BUILD_README.md")
-        print("   - Lengkap: docs/CARA_BUILD_EXE.txt")
-        print("   - Cheatsheet: docs/BUILD_CHEATSHEET.md")
+        print("   - Quick Start: docs/build-exe.md")
         print()
     else:
         print("\n❌ Build gagal. Periksa error di atas.")
